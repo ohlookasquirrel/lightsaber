@@ -1,3 +1,5 @@
 venv/*
 *.wav
 *.mpy
+.idea/*
+__pycache__/*
