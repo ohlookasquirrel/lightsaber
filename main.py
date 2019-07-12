@@ -1,20 +1,22 @@
+import colors
 import mode
 from Hardware import Hardware
-from state_manager import StateManager
+from state import State
+import state_manager
+import action_manager
 
-
-class Saber:
-    def power_on(self):
-        return "powered dog"
 
 def main():
-    something = ""
+    state = mode.OFF
+    hardware = Hardware(132)
+    hardware.powerButton.set_color(colors.BLUE)
+    while True:
+        state = run(state, hardware)
 
 
-def evaluate(state: StateManager, hardware: Hardware) -> StateManager:
-    saber = Saber()
-    saber.power_on()
-    return StateManager(mode.ON)
+def run(state: State, hardware: Hardware) -> State:
+    action = state_manager.get_action(state, hardware)
+    return action_manager.execute_action_on_hardware(action, hardware)
 
 
 if __name__ == '__main__':
