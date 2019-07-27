@@ -1,5 +1,4 @@
 from Hardware import Hardware
-import time
 import mode
 from state import State
 from action import Action
@@ -18,5 +17,16 @@ def get_action(state: State, hardware: Hardware) -> Action:
     elif hardware.powerButton.pressed() and state.mode == mode.ON:
         return Action(action_manager.POWER_OFF)
 
+    elif acceleration_total(hardware) >= CLASH_THRESHOLD:
+        return Action(action_manager.CLASH)
+
+    elif acceleration_total(hardware) >= SWING_THRESHOLD:
+        return Action(action_manager.SWING)
+
     else:
         return Action()
+
+
+def acceleration_total(hardware):
+    x, y, z = hardware.accelerometer.acceleration                            # Read accelerometer
+    return x * x + z * z

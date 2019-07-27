@@ -4,9 +4,9 @@ import gc
 import time
 import math
 import sound
-
 # 132 LED's on zero indexed array
 NUM_PIXELS = 131
+
 
 def mix(color_1, color_2, weight_2):
     """
@@ -37,8 +37,12 @@ def on(strip, lower=0, upper=NUM_PIXELS, color=colors.BLUE):
             strip[i] = color
         elif 5 < i <= 10:
             strip[i] = colors.WHITE
-        elif 11 <= i < 30:
-            strip[i] = mix(color, colors.WHITE, 0.5)
+        elif 11 <= i < 20:
+            strip[i] = mix(color, colors.WHITE, 0.02)
+        elif 21 <= i < 26:
+            strip[i] = mix(color, colors.WHITE, 0.01)
+        elif 27 <= i < 30:
+            strip[i] = mix(color, colors.WHITE, 0.005)
         else:
             strip[i] = color
     strip.show()
@@ -49,8 +53,8 @@ def power(strip, speaker, sound_name, duration, reverse, color):
         prev = NUM_PIXELS
     else:
         prev = 0
-    gc.collect()                   # Tidy up RAM now so animation's smoother
-    start_time = time.monotonic()  # Save audio start time
+    gc.collect()                                # Tidy up RAM now so animation's smoother
+    start_time = time.monotonic()               # Save audio start time
     sound.play_wav(sound_name, speaker)
     while True:
         elapsed = time.monotonic() - start_time  # Time spent playing sound
@@ -61,7 +65,7 @@ def power(strip, speaker, sound_name, duration, reverse, color):
             fraction = 1.0 - fraction            # 1.0 to 0.0 if reverse
         fraction = math.pow(fraction, 0.5)       # Apply nonlinear curve
         threshold = int(NUM_PIXELS * fraction + 0.5)
-        num = threshold - prev # Number of pixels to light on this pass
+        num = threshold - prev                   # Number of pixels to light on this pass
         if num != 0:
             if reverse:
                 off(strip, lower=threshold, upper=prev)
@@ -81,16 +85,33 @@ def power(strip, speaker, sound_name, duration, reverse, color):
         on(strip, lower=0, upper=NUM_PIXELS, color=color)
 
 
-def flash(strip, color):
-    for i in range(5):
-        strip.fill(color)
+def flash(strip, flash_color, return_color, num_of_flashes=5, flash_delay=0.01, lower=0, upper=NUM_PIXELS):
+    for i in range(num_of_flashes):
+        strip[lower:upper] = [flash_color] * (upper-lower)
         strip.show()
-        time.sleep(0.01)
-        strip.fill(0)
+        time.sleep(flash_delay)
+        on(strip, color=return_color, lower=lower, upper=upper)
+        time.sleep(flash_delay)
+
+
+def swell(strip, main_color, secondary_color):
+    gc.collect()
+    on(strip, color=mix(main_color, secondary_color, 0.1))
+    on(strip, color=mix(main_color, secondary_color, 0.2))
+    on(strip, color=mix(main_color, secondary_color, 0.3))
+    on(strip, color=mix(main_color, secondary_color, 0.4))
+    on(strip, color=mix(main_color, secondary_color, 0.5))
+    on(strip, color=mix(main_color, secondary_color, 0.4))
+    on(strip, color=mix(main_color, secondary_color, 0.3))
+    on(strip, color=mix(main_color, secondary_color, 0.2))
+    on(strip, color=mix(main_color, secondary_color, 0.1))
+    on(strip, color=main_color)
+
+
+def rainbow(strip, wait):
+    for first_pixel_hue in range(0, 5*65536, 256):
+        for pixel in range(0, NUM_PIXELS):
+            pixel_hue = first_pixel_hue + (pixel * 65536 / strip.numPixels())
+            strip[pixel] = strip.gamma32(strip.ColorHSV(pixel_hue))
         strip.show()
-        time.sleep(0.01)
-    strip.fill(color)
-    strip.show()
-
-
-
+        time.sleep(wait)
