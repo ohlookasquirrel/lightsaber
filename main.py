@@ -16,7 +16,7 @@ def main():
 
 def run(state: State, hardware: Hardware) -> State:
     action = state_manager.get_action(state, hardware)
-    return action_manager.execute_action_on_hardware(action, hardware)
+    return action_manager.execute_action_on_hardware(action, hardware, state)
 
 
 if __name__ == '__main__':

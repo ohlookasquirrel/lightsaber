@@ -11,6 +11,7 @@ sys.modules['adafruit_lis3dh'] = MagicMock()
 audioio_mock = MagicMock()
 sys.modules['audioio'] = audioio_mock
 
+from state import State
 import colors
 import mode
 from action import Action
@@ -19,6 +20,7 @@ import action_manager
 
 
 def test_execute_action_turns_on_lightsaber():
+    state = State(initial_mode=mode.OFF)
     action = Action(action_manager.POWER_ON)
     hardware = Hardware(30)
     speaker_mock = MagicMock()
@@ -26,14 +28,20 @@ def test_execute_action_turns_on_lightsaber():
     action_manager.saber = MagicMock()
     action_manager.sound = MagicMock()
 
-    state = action_manager.execute_action_on_hardware(action, hardware)
+    returned_state = action_manager.execute_action_on_hardware(action, hardware, state)
 
-    assert state.mode == mode.ON
-    action_manager.saber.power.assert_called_with(hardware.strip, speaker_mock, 'on', 1.0, False, colors.BLUE)
+    assert returned_state.mode == mode.ON
+    action_manager.saber.power.assert_called_with(hardware.strip,
+                                                  speaker_mock,
+                                                  'on',
+                                                  1.0,
+                                                  False,
+                                                  colors.BLUE)
     action_manager.sound.play_wav.assert_called_with('idle', speaker_mock, loop=True)
 
 
 def test_execute_action_turns_off_lightsaber():
+    state = State(initial_mode=mode.ON)
     action = Action(action_manager.POWER_OFF)
     hardware = Hardware(30)
     speaker_mock = MagicMock()
@@ -41,12 +49,32 @@ def test_execute_action_turns_off_lightsaber():
     action_manager.saber = MagicMock()
     action_manager.sound = MagicMock()
 
-    state = action_manager.execute_action_on_hardware(action, hardware)
+    returned_state = action_manager.execute_action_on_hardware(action, hardware, state)
 
-    assert state.mode == mode.OFF
-    action_manager.saber.power.assert_called_with(hardware.strip, speaker_mock, 'off', 1.0, True, colors.BLUE)
+    assert returned_state.mode == mode.OFF
+    action_manager.saber.power.assert_called_with(hardware.strip,
+                                                  speaker_mock,
+                                                  'off',
+                                                  1.0,
+                                                  True,
+                                                  colors.BLUE)
 
 
+def test_execute_action_stays_on_if_action_is_none():
+    state = State(initial_mode=mode.ON)
+    action = Action(action_manager.NONE)
+    hardware = MagicMock()
+
+    returned_state = action_manager.execute_action_on_hardware(action, hardware, state)
+
+    assert returned_state.mode == mode.ON
 
 
+def test_execute_action_stays_off_if_action_is_none():
+    state = State(initial_mode=mode.OFF)
+    action = Action(action_manager.NONE)
+    hardware = MagicMock()
 
+    returned_state = action_manager.execute_action_on_hardware(action, hardware, state)
+
+    assert returned_state.mode == mode.OFF
