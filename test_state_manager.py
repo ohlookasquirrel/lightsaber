@@ -46,6 +46,7 @@ def test_get_action_returns_no_op_when_button_not_pressed_and_is_on():
 def test_get_action_returns_power_on_action_when_button_released_and_is_off():
     state = State(mode.OFF)
     hardware = MagicMock()
+    state_manager.seconds_button_was_pressed = lambda x: 0.123
 
     action_result = state_manager.get_action(state, hardware)
 
@@ -55,6 +56,7 @@ def test_get_action_returns_power_on_action_when_button_released_and_is_off():
 def test_get_action_returns_power_off_action_when_button_released_and_is_on():
     state = State(mode.ON)
     hardware = MagicMock()
+    state_manager.seconds_button_was_pressed = lambda x: 0.123
 
     action_result = state_manager.get_action(state, hardware)
 
@@ -65,10 +67,11 @@ def test_get_action_returns_clash_when_accelerometer_crosses_clash_threshold():
     state = State(mode.ON)
     hardware = MagicMock()
     hardware.accelerometer = MagicMock()
-    hardware.powerButton.pressed.return_value = False
 
     state_manager.CLASH_THRESHOLD = 450
     type(hardware.accelerometer).acceleration = PropertyMock(return_value=(15, 0, 15))
+
+    state_manager.seconds_button_was_pressed = lambda x: 0
 
     action_result = state_manager.get_action(state, hardware)
 
@@ -79,15 +82,51 @@ def test_get_action_returns_swing_when_accelerometer_crosses_swing_threshold():
     state = State(mode.ON)
     hardware = MagicMock()
     hardware.accelerometer = MagicMock()
-    hardware.powerButton.pressed.return_value = False
 
     state_manager.CLASH_THRESHOLD = 600
     state_manager.SWING_THRESHOLD = 200
     type(hardware.accelerometer).acceleration = PropertyMock(return_value=(10, 654, 10))
+    state_manager.seconds_button_was_pressed = lambda x: 0
 
     action_result = state_manager.get_action(state, hardware)
 
     assert action_result.name == action_manager.SWING
 
 
+def test_get_action_returns_mode_select_when_button_held_for_four_seconds():
+    state = State(initial_mode=mode.ON)
+    hardware = MagicMock()
+    hardware.accelerometer = MagicMock()
 
+    type(hardware.accelerometer).acceleration = PropertyMock(return_value=(1, 1, 1))
+    state_manager.seconds_button_was_pressed = lambda x: 4
+
+    action_result = state_manager.get_action(state, hardware)
+
+    assert action_result.name == action_manager.MODE_SELECT
+
+
+def test_get_action_selects_next_mode():
+    state = State(initial_mode=mode.MODE_SELECT)
+    hardware = MagicMock()
+    hardware.accelerometer = MagicMock()
+
+    type(hardware.accelerometer).acceleration = PropertyMock(return_value=(1, 1, 1))
+    state_manager.seconds_button_was_pressed = lambda x: 1
+
+    action_result = state_manager.get_action(state, hardware)
+
+    assert action_result.name == action_manager.MODE_NEXT
+
+
+def test_get_action_activates_selected_mode_on_long_press():
+    state = State(initial_mode=mode.MODE_SELECT)
+    hardware = MagicMock()
+    hardware.accelerometer = MagicMock()
+
+    type(hardware.accelerometer).acceleration = PropertyMock(return_value=(1, 1, 1))
+    state_manager.seconds_button_was_pressed = lambda x: 4
+
+    action_result = state_manager.get_action(state, hardware)
+
+    assert action_result.name == action_manager.ACTIVATE_SELECTED_MODE

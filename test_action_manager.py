@@ -149,3 +149,85 @@ def test_execute_action_swells_light_on_swing():
     assert returned_state.mode == mode.ON
     assert returned_state.color == colors.GREEN
     action_manager.saber.swell.assert_called_with(hardware.strip, state.idle_color, state.color)
+
+
+def test_execute_action_mode_select_presents_mode_select():
+    state = State(initial_mode=mode.OFF, initial_color=colors.ORANGE)
+    action = Action(action_manager.MODE_SELECT)
+    hardware = Hardware(30)
+    hardware.powerButton = MagicMock()
+    hardware.powerButton.pressed = MagicMock(return_value=False)    # Code needs to make sure the button is released
+    speaker_mock = MagicMock()
+    hardware.speaker = speaker_mock
+    action_manager.saber = MagicMock()
+    action_manager.sound = MagicMock()
+    expected_selected_mode = mode.SelectableModesItr().current()
+
+    returned_state = action_manager.execute_action_on_hardware(action, hardware, previous_state=state)
+
+    assert returned_state.mode == mode.MODE_SELECT
+    assert returned_state.color == colors.ORANGE
+    assert returned_state.mode_selector.current() == expected_selected_mode
+    action_manager.saber.display_mode_select.assert_called_with(hardware.strip, state.mode_selector)
+
+
+def test_execute_action_mode_select_plays_wow():
+    state = State(initial_mode=mode.OFF, initial_color=colors.ORANGE)
+    expected_selected_mode = state.mode_selector.next()
+
+    action = Action(action_manager.MODE_SELECT)
+    hardware = Hardware(30)
+    hardware.powerButton.pressed = MagicMock(return_value=False)  # Code needs to make sure the button is released
+    speaker_mock = MagicMock()
+    hardware.speaker = speaker_mock
+    action_manager.saber = MagicMock()
+    action_manager.sound = MagicMock()
+
+    returned_state = action_manager.execute_action_on_hardware(action, hardware, previous_state=state)
+
+    assert returned_state.mode == mode.MODE_SELECT
+    assert returned_state.color == colors.ORANGE
+    assert returned_state.mode_selector.current() == expected_selected_mode
+    action_manager.sound.play_wav.assert_called_with('wow1', speaker_mock)
+
+
+def test_execute_action_select_mode_next_sets_the_next_mode():
+    state = State(initial_mode=mode.MODE_SELECT, initial_color=colors.GREEN)
+    expected_selected_mode = mode.SelectableModesItr().next()
+    action = Action(action_manager.MODE_NEXT)
+    hardware = Hardware(30)
+    speaker_mock = MagicMock()
+    hardware.speaker = speaker_mock
+    action_manager.saber = MagicMock()
+    action_manager.sound = MagicMock()
+
+    returned_state = action_manager.execute_action_on_hardware(action, hardware, previous_state=state)
+
+    assert returned_state.mode == mode.MODE_SELECT
+    assert returned_state.color == colors.GREEN
+    assert returned_state.mode_selector.current() == expected_selected_mode
+
+
+def test_execute_action_activates_lightsaber_mode():
+    state = State(initial_mode=mode.MODE_SELECT, initial_color=colors.GREEN)
+    action = Action(action_manager.ACTIVATE_SELECTED_MODE)
+    hardware = Hardware(30)
+    speaker_mock = MagicMock()
+    hardware.speaker = speaker_mock
+    action_manager.saber = MagicMock()
+    action_manager.sound = MagicMock()
+
+    returned_state = action_manager.execute_action_on_hardware(action, hardware, previous_state=state)
+
+    assert returned_state.color == colors.GREEN
+    assert returned_state.mode == mode.ON
+    action_manager.saber.power.assert_called_with(hardware.strip,
+                                              speaker_mock,
+                                              'on',
+                                              1.0,
+                                              False,
+                                              state.idle_color)
+    action_manager.sound.play_wav.assert_called_with('idle', speaker_mock, loop=True, override_current_sound=False)
+
+
+

@@ -4,6 +4,7 @@ import gc
 import time
 import math
 import sound
+import mode
 # 132 LED's on zero indexed array
 NUM_PIXELS = 131
 
@@ -115,3 +116,15 @@ def rainbow(strip, wait):
             strip[pixel] = strip.gamma32(strip.ColorHSV(pixel_hue))
         strip.show()
         time.sleep(wait)
+
+
+def display_mode_select(strip, mode_selector: mode.SelectableModesItr):
+    for current_mode in mode_selector.selectable_modes:
+        strip[current_mode.lower_led_bound:current_mode.upper_led_bound] = \
+            [current_mode.color] * (current_mode.upper_led_bound - current_mode.lower_led_bound)
+
+    selected_mode = mode_selector.current()
+    strip[selected_mode.lower_led_bound:selected_mode.upper_led_bound] = \
+        [colors.WHITE] * (selected_mode.upper_led_bound - selected_mode.lower_led_bound)
+    strip.show()
+

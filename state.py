@@ -8,6 +8,7 @@ class State:
         self.idle_color = colors.calculate_idle_color(initial_color)
         self.color = initial_color
         self.flash_color = colors.WHITE
+        self.mode_selector = mode.SelectableModesItr()
 
     def __eq__(self, other):
         return self.mode == other.mode \
@@ -16,12 +17,14 @@ class State:
                and self.flash_color == other.flash_color \
                and self.mode_selector.current() == other.mode_selector.current()
 
-    def __copy__(self, initial_mode=None, initial_color=None):
+    def __copy__(self, initial_mode=None, initial_color=None, new_selectable_mode: mode.SelectableMode = None):
         if initial_mode is not None:
             self.mode = initial_mode
         elif initial_color is not None:
             self.idle_color = colors.calculate_idle_color(initial_color)
             self.color = initial_color
             self.flash_color = colors.WHITE
+        elif new_selectable_mode is not None:
+            self.mode_selector = mode.SelectableModesItr(initial_current=new_selectable_mode)
 
         return self
