@@ -39,3 +39,8 @@ def mode_select(hardware: Hardware, state: State):
 
 def activate_color_change_mode(hardware: Hardware):
     saber.on(hardware.strip, color=colors.ALL_COLORS[0])
+
+
+def next_color(hardware: Hardware, state: State):
+    color = colors.next_color(state.color)
+    saber.on(hardware.strip, color=color)

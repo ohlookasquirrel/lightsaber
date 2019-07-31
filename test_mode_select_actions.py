@@ -48,7 +48,7 @@ def test_mode_select_action_plays_wow():
     actions.sound.play_wav.assert_called_with('wow1', speaker_mock)
 
 
-def test_execute_action_activates_color_change_mode():
+def test_activate_color_change_mode_displays_first_color():
     state = State(initial_mode=mode.MODE_SELECT, initial_color=colors.GREEN)
     state.mode_selector.next()  # select color change mode TODO improve this
 
@@ -59,5 +59,27 @@ def test_execute_action_activates_color_change_mode():
     actions.sound = MagicMock()
 
     actions.activate_color_change_mode(hardware)
+
+    actions.saber.on(hardware.strip, color=colors.ALL_COLORS[0])
+
+
+def test_next_color_displays_to_next_color():
+    state = State(initial_mode=mode.COLOR_CHANGE, initial_color=colors.ALL_COLORS[0])
+
+    hardware = Hardware(30)
+    actions.saber = MagicMock()
+
+    actions.next_color(hardware, state)
+
+    actions.saber.on(hardware.strip, color=colors.ALL_COLORS[1])
+
+
+def test_execute_action_loops_back_to_first_color_on_next_color_action():
+    state = State(initial_mode=mode.COLOR_CHANGE, initial_color=colors.ALL_COLORS[len(colors.ALL_COLORS) - 1])
+
+    hardware = Hardware(30)
+    actions.saber = MagicMock()
+
+    actions.next_color(hardware, state)
 
     actions.saber.on(hardware.strip, color=colors.ALL_COLORS[0])

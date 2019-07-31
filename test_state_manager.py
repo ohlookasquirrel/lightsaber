@@ -147,7 +147,7 @@ def test_get_action_selects_next_mode():
     state_manager.actions.mode_select.assert_called_with(hardware, state)
 
 
-def test_execute_action_activates_lightsaber_mode():
+def test_get_action_activates_lightsaber_mode():
     state = State(initial_mode=mode.MODE_SELECT, initial_color=colors.GREEN)
     state_manager.actions = MagicMock()
     hardware = MagicMock()
@@ -162,7 +162,7 @@ def test_execute_action_activates_lightsaber_mode():
     state_manager.actions.power_on.assert_called_with(hardware, state)
 
 
-def test_execute_action_activates_color_change_mode():
+def test_get_action_activates_color_change_mode():
     state = State(initial_mode=mode.MODE_SELECT, initial_color=colors.GREEN)
     state.mode_selector.next()  # select color change mode TODO improve this
     state_manager.actions = MagicMock()
@@ -179,32 +179,34 @@ def test_execute_action_activates_color_change_mode():
     state_manager.actions.activate_color_change_mode(hardware)
 
 
-
-
-
-
 def test_get_action_button_press_changes_to_next_color_in_color_change_mode():
-    state = State(initial_mode=mode.COLOR_CHANGE)
+    state = State(initial_mode=mode.COLOR_CHANGE, initial_color=colors.ALL_COLORS[0])
     hardware = MagicMock()
     hardware.accelerometer = MagicMock()
     type(hardware.accelerometer).acceleration = PropertyMock(return_value=(1, 1, 1))
     state_manager.seconds_button_was_pressed = lambda x: 1
+    state_manager.actions = MagicMock()
 
-    action_result = state_manager.get_action(state, hardware)
+    returned_state = state_manager.get_action(state, hardware)
 
-    assert action_result.name == action_manager.NEXT_COLOR
+    assert returned_state.mode == mode.COLOR_CHANGE
+    assert returned_state.color == colors.ALL_COLORS[1]
+    state_manager.actions.next_color.assert_called_with(hardware, state)
 
 
-def test_get_action_returns_activate_color_when_button_held_in_color_change_mode():
-    state = State(initial_mode=mode.COLOR_CHANGE)
+def test_get_action_powers_on_with_current_color_when_button_held_in_color_change_mode():
+    state = State(initial_mode=mode.COLOR_CHANGE, initial_color=colors.NAVY)
     hardware = MagicMock()
+    state_manager.actions = MagicMock()
     hardware.accelerometer = MagicMock()
     type(hardware.accelerometer).acceleration = PropertyMock(return_value=(1, 1, 1))
     state_manager.seconds_button_was_pressed = lambda x: 4
 
-    action_result = state_manager.get_action(state, hardware)
+    returned_state = state_manager.get_action(state, hardware)
 
-    assert action_result.name == action_manager.ACTIVATE_COLOR
+    assert returned_state.mode == mode.ON
+    assert returned_state.color == colors.NAVY
+    state_manager.actions.power_on.assert_called_with(hardware, state)
 
 
 
