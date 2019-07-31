@@ -27,18 +27,20 @@ def seconds_button_was_pressed(hardware):
 
 def get_action(state: State, hardware: Hardware) -> Action:
     seconds_button_was_held_for = seconds_button_was_pressed(hardware)
-    if seconds_button_was_held_for >= 4 and state.mode != mode.MODE_SELECT:
-        return Action(action_manager.MODE_SELECT)
 
-    elif seconds_button_was_held_for >= 4:
+    if seconds_button_was_held_for >= 4 and state.mode == mode.COLOR_CHANGE:
+        return Action(action_manager.ACTIVATE_COLOR)
+
+    elif seconds_button_was_held_for >= 4 and state.mode == mode.MODE_SELECT:
         return Action(action_manager.ACTIVATE_SELECTED_MODE)
 
+    elif seconds_button_was_held_for >= 4:
+        return Action(action_manager.MODE_SELECT)
+
     elif seconds_button_was_held_for > 0 and state.mode == mode.MODE_SELECT:
-        print("Mode.next action returned")
         return Action(action_manager.MODE_NEXT)
 
     elif state.mode == mode.MODE_SELECT:
-        print("Staying in mode select")
         return Action(action_manager.MODE_SELECT)
 
     elif seconds_button_was_held_for > 0 and state.mode == mode.OFF:
@@ -52,6 +54,9 @@ def get_action(state: State, hardware: Hardware) -> Action:
 
     elif acceleration_total(hardware) >= SWING_THRESHOLD:
         return Action(action_manager.SWING)
+
+    elif seconds_button_was_held_for > 0 and state.mode == mode.COLOR_CHANGE:
+        return Action(action_manager.NEXT_COLOR)
 
     else:
         return Action()

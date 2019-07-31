@@ -130,3 +130,30 @@ def test_get_action_activates_selected_mode_on_long_press():
     action_result = state_manager.get_action(state, hardware)
 
     assert action_result.name == action_manager.ACTIVATE_SELECTED_MODE
+
+
+def test_get_action_button_press_changes_to_next_color_in_color_change_mode():
+    state = State(initial_mode=mode.COLOR_CHANGE)
+    hardware = MagicMock()
+    hardware.accelerometer = MagicMock()
+    type(hardware.accelerometer).acceleration = PropertyMock(return_value=(1, 1, 1))
+    state_manager.seconds_button_was_pressed = lambda x: 1
+
+    action_result = state_manager.get_action(state, hardware)
+
+    assert action_result.name == action_manager.NEXT_COLOR
+
+
+def test_get_action_returns_activate_color_when_button_held_in_color_change_mode():
+    state = State(initial_mode=mode.COLOR_CHANGE)
+    hardware = MagicMock()
+    hardware.accelerometer = MagicMock()
+    type(hardware.accelerometer).acceleration = PropertyMock(return_value=(1, 1, 1))
+    state_manager.seconds_button_was_pressed = lambda x: 4
+
+    action_result = state_manager.get_action(state, hardware)
+
+    assert action_result.name == action_manager.ACTIVATE_COLOR
+
+
+

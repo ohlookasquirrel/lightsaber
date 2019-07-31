@@ -17,3 +17,13 @@ def calculate_idle_color(color):
     # "Idle" color is 1/4 brightness, "swinging" color is full brightness...
     brightness = 4
     return int(color[0] / brightness), int(color[1] / brightness), int(color[2] / brightness)
+
+
+def next_color(color):
+    index = ALL_COLORS.index(color)
+    if index + 1 == len(ALL_COLORS):
+        return ALL_COLORS[0]
+    else:
+        return ALL_COLORS[index + 1]
+
+
