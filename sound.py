@@ -1,6 +1,4 @@
 import random
-IDLE = 'idle'
-ON = 'on'
 
 
 def play_wav(file_name, speaker, loop=False, override_current_sound=True):
@@ -21,3 +19,26 @@ def play_wav(file_name, speaker, loop=False, override_current_sound=True):
 
 def wow(speaker):
     play_wav("wow" + str(random.randint(1, 6)), speaker)
+
+
+class Lightsaber:
+
+    @staticmethod
+    def idle():
+        return 'idle'
+
+    @staticmethod
+    def clash():
+        return 'clash'
+
+    @staticmethod
+    def swing():
+        return 'swing'
+
+    @staticmethod
+    def on():
+        return 'on'
+
+    @staticmethod
+    def off():
+        return 'off'

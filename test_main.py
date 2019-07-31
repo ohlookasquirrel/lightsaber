@@ -13,3 +13,4 @@ import main
 
 def test_has_hardware():
     assert(main.Hardware is not None)
+

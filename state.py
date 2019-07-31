@@ -1,5 +1,6 @@
 import colors
 import mode
+import sound
 
 
 class State:
@@ -9,6 +10,7 @@ class State:
         self.color = initial_color
         self.flash_color = colors.WHITE
         self.mode_selector = mode.SelectableModesItr()
+        self.sounds = sound.Lightsaber()
 
     def __eq__(self, other):
         return self.mode == other.mode \
