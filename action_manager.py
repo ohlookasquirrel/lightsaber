@@ -17,24 +17,7 @@ ACTIVATE_COLOR = "ACTIVATE_COLOR"
 
 
 def execute_action_on_hardware(action, hardware: Hardware, previous_state: State) -> State:
-    if action.name == POWER_ON:
-        power_on(hardware, previous_state.idle_color, previous_state)
-        return State(initial_mode=mode.ON, initial_color=previous_state.color)
-    elif action.name == POWER_OFF:
-        saber.power(hardware.strip, hardware.speaker, previous_state.sounds.off(), 1.0, True, previous_state.idle_color)
-        hardware.powerButton.power_off()
-        return State(initial_mode=mode.OFF, initial_color=previous_state.color)
-    elif action.name == CLASH:
-        sound.play_wav(previous_state.sounds.clash(), hardware.speaker)
-        saber.flash(hardware.strip, colors.WHITE, previous_state.idle_color, num_of_flashes=1)
-        sound.play_wav(previous_state.sounds.idle(), hardware.speaker, loop=True, override_current_sound=False)
-        return State(initial_mode=mode.ON, initial_color=previous_state.color)
-    elif action.name == SWING:
-        sound.play_wav(previous_state.sounds.swing(), hardware.speaker)
-        saber.swell(hardware.strip, previous_state.idle_color, previous_state.color)
-        sound.play_wav(previous_state.sounds.idle(), hardware.speaker, loop=True, override_current_sound=False)
-        return State(initial_mode=mode.ON, initial_color=previous_state.color)
-    elif action.name == MODE_SELECT:
+    if action.name == MODE_SELECT:
         if previous_state.mode != mode.MODE_SELECT:
             sound.play_wav('wow1', hardware.speaker)
             while hardware.powerButton.pressed():  # Wait for button to be released

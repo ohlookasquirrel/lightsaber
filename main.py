@@ -1,6 +1,7 @@
 import colors
 import mode
 from Hardware import Hardware
+from action import Action
 from state import State
 import state_manager
 import action_manager
@@ -18,7 +19,10 @@ def main():
 
 def run(state: State, hardware: Hardware) -> State:
     action = state_manager.get_action(state, hardware)
-    return action_manager.execute_action_on_hardware(action, hardware, previous_state=state)
+    if isinstance(action, Action):
+        return action_manager.execute_action_on_hardware(action, hardware, previous_state=state)
+    else:
+        return action  # TODO intermediary fix inbetween refactor. This is a state now.
 
 
 if __name__ == '__main__':

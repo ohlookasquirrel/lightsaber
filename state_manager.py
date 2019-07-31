@@ -1,3 +1,4 @@
+import actions
 from Hardware import Hardware
 import time
 import mode
@@ -25,7 +26,8 @@ def seconds_button_was_pressed(hardware):
     return x
 
 
-def get_action(state: State, hardware: Hardware) -> Action:
+#  TODO add return type when done with refactor
+def get_action(state: State, hardware: Hardware):
     seconds_button_was_held_for = seconds_button_was_pressed(hardware)
 
     if seconds_button_was_held_for >= 4 and state.mode == mode.COLOR_CHANGE:
@@ -44,16 +46,20 @@ def get_action(state: State, hardware: Hardware) -> Action:
         return Action(action_manager.MODE_SELECT)
 
     elif seconds_button_was_held_for > 0 and state.mode == mode.OFF:
-        return Action(action_manager.POWER_ON)
+        actions.power_on(hardware, state)
+        return state.__copy__(initial_mode=mode.ON)
 
     elif seconds_button_was_held_for > 0 and state.mode == mode.ON:
-        return Action(action_manager.POWER_OFF)
+        actions.power_off(hardware, state)
+        return state.__copy__(initial_mode=mode.OFF)
 
     elif acceleration_total(hardware) >= CLASH_THRESHOLD:
-        return Action(action_manager.CLASH)
+        actions.clash(hardware, state)
+        return state.__copy__()
 
     elif acceleration_total(hardware) >= SWING_THRESHOLD:
-        return Action(action_manager.SWING)
+        actions.swing(hardware, state)
+        return state.__copy__()
 
     elif seconds_button_was_held_for > 0 and state.mode == mode.COLOR_CHANGE:
         return Action(action_manager.NEXT_COLOR)

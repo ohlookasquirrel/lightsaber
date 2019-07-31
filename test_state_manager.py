@@ -1,6 +1,8 @@
 import sys
 from unittest.mock import MagicMock, PropertyMock
 
+import colors
+
 sys.modules['neopixel'] = MagicMock()
 sys.modules['board'] = MagicMock()
 sys.modules['digitalio'] = MagicMock()
@@ -14,6 +16,7 @@ from state import State
 import state_manager
 
 
+#  TODO move this to main test
 def test_state_initializes_with_a_mode_of_off():
     state = State()
     assert(state.mode == mode.OFF)
@@ -43,54 +46,67 @@ def test_get_action_returns_no_op_when_button_not_pressed_and_is_on():
     assert action_result.name == action_manager.NONE
 
 
-def test_get_action_returns_power_on_action_when_button_released_and_is_off():
-    state = State(mode.OFF)
+def test_get_action_calls_power_on_action_when_button_released_and_is_off():
+    state = State(initial_mode=mode.OFF, initial_color=colors.GREEN)
     hardware = MagicMock()
     state_manager.seconds_button_was_pressed = lambda x: 0.123
+    state_manager.actions = MagicMock()
 
-    action_result = state_manager.get_action(state, hardware)
+    returned_state = state_manager.get_action(state, hardware)
 
-    assert action_result.name == action_manager.POWER_ON
+    assert returned_state.mode == mode.ON
+    assert returned_state.color == colors.GREEN
+    state_manager.actions.power_on.assert_called_with(hardware, state)
 
 
-def test_get_action_returns_power_off_action_when_button_released_and_is_on():
-    state = State(mode.ON)
+def test_get_action_calls_power_off_action_when_button_released_and_is_on():
+    state = State(initial_mode=mode.ON, initial_color=colors.PURPLE)
     hardware = MagicMock()
+    state_manager.actions = MagicMock()
     state_manager.seconds_button_was_pressed = lambda x: 0.123
 
-    action_result = state_manager.get_action(state, hardware)
+    returned_state = state_manager.get_action(state, hardware)
 
-    assert action_result.name == action_manager.POWER_OFF
+    assert returned_state.mode == mode.OFF
+    assert returned_state.color == colors.PURPLE
+    state_manager.actions.power_off.assert_called_with(hardware, state)
 
 
-def test_get_action_returns_clash_when_accelerometer_crosses_clash_threshold():
-    state = State(mode.ON)
+def test_get_action_calls_clash_when_accelerometer_crosses_clash_threshold():
+    state = State(initial_mode=mode.ON, initial_color=colors.PINK)
     hardware = MagicMock()
     hardware.accelerometer = MagicMock()
+
+    state_manager.actions = MagicMock()
 
     state_manager.CLASH_THRESHOLD = 450
     type(hardware.accelerometer).acceleration = PropertyMock(return_value=(15, 0, 15))
 
     state_manager.seconds_button_was_pressed = lambda x: 0
 
-    action_result = state_manager.get_action(state, hardware)
+    returned_state = state_manager.get_action(state, hardware)
 
-    assert action_result.name == action_manager.CLASH
+    assert returned_state.mode == mode.ON
+    assert returned_state.color == colors.PINK
+    state_manager.actions.clash.assert_called_with(hardware, state)
 
 
-def test_get_action_returns_swing_when_accelerometer_crosses_swing_threshold():
-    state = State(mode.ON)
+def test_get_action_calls_swing_when_accelerometer_crosses_swing_threshold():
+    state = State(initial_mode=mode.ON, initial_color=colors.ORANGE)
     hardware = MagicMock()
     hardware.accelerometer = MagicMock()
+
+    state_manager.actions = MagicMock()
 
     state_manager.CLASH_THRESHOLD = 600
     state_manager.SWING_THRESHOLD = 200
     type(hardware.accelerometer).acceleration = PropertyMock(return_value=(10, 654, 10))
     state_manager.seconds_button_was_pressed = lambda x: 0
 
-    action_result = state_manager.get_action(state, hardware)
+    returned_state = state_manager.get_action(state, hardware)
 
-    assert action_result.name == action_manager.SWING
+    assert returned_state == state
+    state_manager.actions.swing.assert_called_with(hardware, state)
 
 
 def test_get_action_returns_mode_select_when_button_held_for_four_seconds():
