@@ -1,4 +1,5 @@
 import actions
+import colors
 from Hardware import Hardware
 import time
 import mode
@@ -33,17 +34,23 @@ def get_action(state: State, hardware: Hardware):
     if seconds_button_was_held_for >= 4 and state.mode == mode.COLOR_CHANGE:
         return Action(action_manager.ACTIVATE_COLOR)
 
-    elif seconds_button_was_held_for >= 4 and state.mode == mode.MODE_SELECT:
-        return Action(action_manager.ACTIVATE_SELECTED_MODE)
+    elif seconds_button_was_held_for >= 4 and state.mode == mode.MODE_SELECT and state.mode_selector.current().name == 'LIGHTSABER':
+        actions.power_on(hardware, state)
+        return state.__copy__(initial_mode=mode.ON)
+
+    elif seconds_button_was_held_for >= 4 and state.mode == mode.MODE_SELECT and state.mode_selector.current().name == 'COLOR_SELECT':
+        actions.activate_color_change_mode(hardware)
+        return State(initial_mode=mode.COLOR_CHANGE, initial_color=colors.ALL_COLORS[0])
 
     elif seconds_button_was_held_for >= 4:
-        return Action(action_manager.MODE_SELECT)
+        actions.mode_select(hardware, state)
+        return state.__copy__(initial_mode=mode.MODE_SELECT)
 
     elif seconds_button_was_held_for > 0 and state.mode == mode.MODE_SELECT:
-        return Action(action_manager.MODE_NEXT)
-
-    elif state.mode == mode.MODE_SELECT:
-        return Action(action_manager.MODE_SELECT)
+        new_state = state.__copy__()
+        new_state.mode_selector.next()
+        actions.mode_select(hardware, state)
+        return new_state
 
     elif seconds_button_was_held_for > 0 and state.mode == mode.OFF:
         actions.power_on(hardware, state)

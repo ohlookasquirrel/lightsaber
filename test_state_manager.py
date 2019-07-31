@@ -15,7 +15,7 @@ import action_manager
 from state import State
 import state_manager
 
-
+#  TODO Probably doing some serious overkill with the number of remocking
 #  TODO move this to main test
 def test_state_initializes_with_a_mode_of_off():
     state = State()
@@ -109,43 +109,78 @@ def test_get_action_calls_swing_when_accelerometer_crosses_swing_threshold():
     state_manager.actions.swing.assert_called_with(hardware, state)
 
 
-def test_get_action_returns_mode_select_when_button_held_for_four_seconds():
-    state = State(initial_mode=mode.ON)
+def test_get_action_calls_mode_select_when_button_held_for_four_seconds():
+    state = State(initial_mode=mode.ON, initial_color=colors.CYAN)
     hardware = MagicMock()
     hardware.accelerometer = MagicMock()
 
     type(hardware.accelerometer).acceleration = PropertyMock(return_value=(1, 1, 1))
     state_manager.seconds_button_was_pressed = lambda x: 4
+    state_manager.actions = MagicMock()
 
-    action_result = state_manager.get_action(state, hardware)
+    expected_selected_mode = mode.SelectableModesItr().current()
 
-    assert action_result.name == action_manager.MODE_SELECT
+    returned_state = state_manager.get_action(state, hardware)
+
+    assert returned_state.mode == mode.MODE_SELECT
+    assert returned_state.color == colors.CYAN
+    assert returned_state.mode_selector.current() == expected_selected_mode
+    state_manager.actions.mode_select.assert_called_with(hardware, state)
 
 
 def test_get_action_selects_next_mode():
-    state = State(initial_mode=mode.MODE_SELECT)
+    state = State(initial_mode=mode.MODE_SELECT, initial_color=colors.GREEN)
+    state_manager.actions = MagicMock()
     hardware = MagicMock()
     hardware.accelerometer = MagicMock()
 
     type(hardware.accelerometer).acceleration = PropertyMock(return_value=(1, 1, 1))
     state_manager.seconds_button_was_pressed = lambda x: 1
 
-    action_result = state_manager.get_action(state, hardware)
+    returned_state = state_manager.get_action(state, hardware)
 
-    assert action_result.name == action_manager.MODE_NEXT
+    expected_selected_mode = mode.SelectableModesItr().next()
+
+    assert returned_state.mode == mode.MODE_SELECT
+    assert returned_state.color == colors.GREEN
+    assert returned_state.mode_selector.current() == expected_selected_mode
+    state_manager.actions.mode_select.assert_called_with(hardware, state)
 
 
-def test_get_action_activates_selected_mode_on_long_press():
-    state = State(initial_mode=mode.MODE_SELECT)
+def test_execute_action_activates_lightsaber_mode():
+    state = State(initial_mode=mode.MODE_SELECT, initial_color=colors.GREEN)
+    state_manager.actions = MagicMock()
+    hardware = MagicMock()
+    hardware.accelerometer = MagicMock()
+
+    type(hardware.accelerometer).acceleration = PropertyMock(return_value=(1, 1, 1))
+    state_manager.seconds_button_was_pressed = lambda x: 4
+    returned_state = state_manager.get_action(state, hardware)
+
+    assert returned_state.color == colors.GREEN
+    assert returned_state.mode == mode.ON
+    state_manager.actions.power_on.assert_called_with(hardware, state)
+
+
+def test_execute_action_activates_color_change_mode():
+    state = State(initial_mode=mode.MODE_SELECT, initial_color=colors.GREEN)
+    state.mode_selector.next()  # select color change mode TODO improve this
+    state_manager.actions = MagicMock()
     hardware = MagicMock()
     hardware.accelerometer = MagicMock()
 
     type(hardware.accelerometer).acceleration = PropertyMock(return_value=(1, 1, 1))
     state_manager.seconds_button_was_pressed = lambda x: 4
 
-    action_result = state_manager.get_action(state, hardware)
+    returned_state = state_manager.get_action(state, hardware)
 
-    assert action_result.name == action_manager.ACTIVATE_SELECTED_MODE
+    assert returned_state.mode == mode.COLOR_CHANGE
+    assert returned_state.color == colors.ALL_COLORS[0]
+    state_manager.actions.activate_color_change_mode(hardware)
+
+
+
+
 
 
 def test_get_action_button_press_changes_to_next_color_in_color_change_mode():

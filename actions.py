@@ -1,4 +1,5 @@
 import colors
+import mode
 from Hardware import Hardware
 from state import State
 import saber
@@ -26,3 +27,15 @@ def swing(hardware: Hardware, state: State):
     sound.play_wav(state.sounds.swing(), hardware.speaker)
     saber.swell(hardware.strip, state.idle_color, state.color)
     sound.play_wav(state.sounds.idle(), hardware.speaker, loop=True, override_current_sound=False)
+
+
+def mode_select(hardware: Hardware, state: State):
+    if state.mode != mode.MODE_SELECT:
+        sound.play_wav('wow1', hardware.speaker)
+        while hardware.powerButton.pressed():  # Wait for button to be released
+            pass
+    saber.display_mode_select(hardware.strip, state.mode_selector)
+
+
+def activate_color_change_mode(hardware: Hardware):
+    saber.on(hardware.strip, color=colors.ALL_COLORS[0])
