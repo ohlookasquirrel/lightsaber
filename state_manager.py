@@ -5,11 +5,11 @@ import time
 import mode
 from state import State
 from action import Action
-import action_manager
+import sound
 
 
-CLASH_THRESHOLD = 350
-SWING_THRESHOLD = 200
+CLASH_THRESHOLD = 300
+SWING_THRESHOLD = 250
 # TODO remove prints
 
 
@@ -43,6 +43,12 @@ def get_action(state: State, hardware: Hardware):
         actions.activate_color_change_mode(hardware)
         return State(initial_mode=mode.COLOR_CHANGE, initial_color=colors.ALL_COLORS[0])
 
+    elif seconds_button_was_held_for >= 4 and state.mode == mode.MODE_SELECT and state.mode_selector.current().name == 'WOWSABER':
+        actions.power_on(hardware, state)
+        new_state = state.__copy__(initial_mode=mode.ON)
+        new_state.sounds = sound.Wowsaber()
+        return new_state
+
     elif seconds_button_was_held_for >= 4:
         actions.mode_select(hardware, state)
         return state.__copy__(initial_mode=mode.MODE_SELECT)
@@ -73,6 +79,9 @@ def get_action(state: State, hardware: Hardware):
         actions.next_color(hardware, state)
         return state.__copy__(initial_color=colors.next_color(state.color))
 
+    elif state.mode == mode.ON and not hardware.speaker.audio.playing:
+        sound.play_wav(state.sounds.idle(), hardware.speaker)
+        return state.__copy__()
     else:
         return Action()
 

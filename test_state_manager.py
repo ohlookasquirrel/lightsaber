@@ -2,6 +2,7 @@ import sys
 from unittest.mock import MagicMock, PropertyMock
 
 import colors
+from sound import Wowsaber
 
 sys.modules['neopixel'] = MagicMock()
 sys.modules['board'] = MagicMock()
@@ -70,6 +71,25 @@ def test_get_action_calls_power_off_action_when_button_released_and_is_on():
     assert returned_state.mode == mode.OFF
     assert returned_state.color == colors.PURPLE
     state_manager.actions.power_off.assert_called_with(hardware, state)
+
+
+def test_get_action_plays_idle_sound_when_mode_is_on_and_nothing_else_happens():
+    state = State(initial_mode=mode.ON, initial_color=colors.ORANGE)
+    hardware = MagicMock()
+    speaker_mock = MagicMock()
+    speaker_mock.audio = MagicMock()
+    type(speaker_mock.audio).playing = PropertyMock(return_value=False)
+    hardware.speaker = speaker_mock
+    state_manager.sound = MagicMock()
+    state_manager.seconds_button_was_pressed = lambda x: 0
+    hardware.accelerometer = MagicMock()
+
+    type(hardware.accelerometer).acceleration = PropertyMock(return_value=(1, 1, 1))
+
+    returned_state = state_manager.get_action(state, hardware)
+
+    assert returned_state == state
+    state_manager.sound.play_wav.assert_called_with(state.sounds.idle(), hardware.speaker)
 
 
 def test_get_action_calls_clash_when_accelerometer_crosses_clash_threshold():
@@ -209,4 +229,26 @@ def test_get_action_powers_on_with_current_color_when_button_held_in_color_chang
     state_manager.actions.power_on.assert_called_with(hardware, state)
 
 
+def test_execute_action_activate_selected_mode_activates_wow_mode():
+    import sound
+    state = State(initial_mode=mode.MODE_SELECT, initial_color=colors.NAVY)
+    state.mode_selector.next()
+    state.mode_selector.next()  # Select third mode aka wow mode, TODO this needs improving
 
+    hardware = MagicMock()
+    speaker_mock = MagicMock()
+    hardware.speaker = speaker_mock
+
+    state_manager.actions = MagicMock()
+    state_manager.saber = MagicMock()
+    state_manager.sound = sound
+    hardware.accelerometer = MagicMock()
+    type(hardware.accelerometer).acceleration = PropertyMock(return_value=(1, 1, 1))
+    state_manager.seconds_button_was_pressed = lambda x: 4
+
+    returned_state = state_manager.get_action(state, hardware)
+
+    assert returned_state.color == colors.NAVY
+    assert returned_state.mode == mode.ON
+    assert isinstance(returned_state.sounds, Wowsaber)
+    state_manager.actions.power_on.assert_called_with(hardware, state)

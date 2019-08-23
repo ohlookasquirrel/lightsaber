@@ -44,5 +44,5 @@ def test_clash_action_plays_sound():
     actions.clash(hardware, state)
 
     play_clash_call = call('clashblah', speaker_mock)
-    play_idle_call = call('idleblah', speaker_mock, loop=True, override_current_sound=False)
+    play_idle_call = call('idleblah', speaker_mock, override_current_sound=False)
     actions.sound.play_wav.assert_has_calls([play_clash_call, play_idle_call])

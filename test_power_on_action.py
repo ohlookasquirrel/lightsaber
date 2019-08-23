@@ -36,4 +36,4 @@ def test_power_on_action_turns_on_lightsaber():
                                                   1.0,
                                                   False,
                                                   state.idle_color)
-    actions.sound.play_wav.assert_called_with('idleblah', speaker_mock, loop=True, override_current_sound=False)
+    actions.sound.play_wav.assert_called_with('idleblah', speaker_mock, override_current_sound=False)

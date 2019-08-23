@@ -38,21 +38,3 @@ def test_execute_action_stays_off_if_action_is_none():
 
     assert returned_state.mode == mode.OFF
 
-def test_execute_action_activate_selected_mode_activates_wow_mode():
-    state = State(initial_mode=mode.MODE_SELECT, initial_color=colors.PURPLE)
-    state.sounds.on = lambda: 'onblah'
-    state.sounds.idle = lambda: 'idleblah'
-    action = Action(action_manager.ACTIVATE_COLOR)
-
-    hardware = Hardware(30)
-    speaker_mock = MagicMock()
-    hardware.speaker = speaker_mock
-    action_manager.saber = MagicMock()
-    action_manager.sound = MagicMock()
-
-    returned_state = action_manager.execute_action_on_hardware(action, hardware, previous_state=state)
-
-    assert returned_state.color == colors.PURPLE
-    assert returned_state.mode == mode.ON
-    action_manager.saber.power.assert_called_with(hardware.strip, speaker_mock, 'onblah', 1.0, False, state.idle_color)
-    action_manager.sound.play_wav.assert_called_with('idleblah', speaker_mock, loop=True, override_current_sound=False)

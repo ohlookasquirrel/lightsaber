@@ -9,7 +9,7 @@ import sound
 def power_on(hardware: Hardware, state: State):
     hardware.powerButton.power_on()
     saber.power(hardware.strip, hardware.speaker, state.sounds.on(), 1.0, False, state.idle_color)
-    sound.play_wav(state.sounds.idle(), hardware.speaker, loop=True, override_current_sound=False)
+    sound.play_wav(state.sounds.idle(), hardware.speaker, override_current_sound=False)
 
 
 def power_off(hardware: Hardware, state: State):
@@ -20,13 +20,13 @@ def power_off(hardware: Hardware, state: State):
 def clash(hardware: Hardware, state: State):
     sound.play_wav(state.sounds.clash(), hardware.speaker)
     saber.flash(hardware.strip, colors.WHITE, state.idle_color, num_of_flashes=1)
-    sound.play_wav(state.sounds.idle(), hardware.speaker, loop=True, override_current_sound=False)
+    sound.play_wav(state.sounds.idle(), hardware.speaker, override_current_sound=False)
 
 
 def swing(hardware: Hardware, state: State):
     sound.play_wav(state.sounds.swing(), hardware.speaker)
     saber.swell(hardware.strip, state.idle_color, state.color)
-    sound.play_wav(state.sounds.idle(), hardware.speaker, loop=True, override_current_sound=False)
+    sound.play_wav(state.sounds.idle(), hardware.speaker, override_current_sound=False)
 
 
 def mode_select(hardware: Hardware, state: State):

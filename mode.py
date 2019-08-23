@@ -30,7 +30,7 @@ class SelectableMode:
 def generate_selectable_modes():
     selectable_modes = [SelectableMode('LIGHTSABER', colors.BLUE, 'on'),
                         SelectableMode('COLOR_SELECT', colors.ORANGE, 'clash'),
-                        SelectableMode('WOW_MODE', colors.PURPLE, 'wow1')]
+                        SelectableMode('WOWSABER', colors.PURPLE, 'wow1')]
     import saber
     step = saber.NUM_PIXELS // len(selectable_modes)
     lower = 0
