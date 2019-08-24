@@ -4,6 +4,7 @@ OFF = 0
 ON = 1
 MODE_SELECT = 2
 COLOR_CHANGE = 3
+LIGHTSABER = "LIGHTSABER"
 
 
 class SelectableMode:

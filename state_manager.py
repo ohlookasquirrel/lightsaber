@@ -1,5 +1,6 @@
 import actions
 import colors
+import saber
 from Hardware import Hardware
 import time
 import mode
@@ -24,6 +25,41 @@ def seconds_button_was_pressed(hardware):
     x = time.monotonic() - time_button_was_pressed
     print("Button was pressed for %s seconds" % x)
     return x
+
+
+def evaluate_lightsaber(hardware: Hardware, state: State) -> State:
+    new_state = state.__copy__()
+
+    seconds_button_was_held_for = seconds_button_was_pressed(hardware)
+    if seconds_button_was_held_for >= 4:
+        new_state = new_state.__copy__(initial_mode=mode.MODE_SELECT)
+
+    elif seconds_button_was_held_for > 0 and state.state == mode.OFF:
+        actions.power_on(hardware, state)
+        new_state.state = mode.ON
+
+    elif seconds_button_was_held_for > 0 and state.state == mode.ON:
+        actions.power_off(hardware, state)
+        new_state.state = mode.OFF
+
+    elif acceleration_total(hardware) >= CLASH_THRESHOLD:
+        actions.clash(hardware, state)
+
+    elif acceleration_total(hardware) >= SWING_THRESHOLD:
+        actions.swing(hardware, state)
+
+    elif state.state == mode.ON and time.monotonic() - state.time_since_wav_was_looped >= 4:
+        actions.cycle_idle_loop(hardware, state)
+        new_state = state.__copy__()
+        new_state.time_since_wav_was_looped = time.monotonic()
+
+    return new_state
+
+
+def evaluate_mode_select(hardware: Hardware, state: State) -> State:
+    new_state = state.__copy__()
+
+    return new_state
 
 
 #  TODO add return type when done with refactor
@@ -58,29 +94,10 @@ def get_action(state: State, hardware: Hardware):
         actions.mode_select(hardware, state)
         return new_state
 
-    elif seconds_button_was_held_for > 0 and state.mode == mode.OFF:
-        actions.power_on(hardware, state)
-        return state.__copy__(initial_mode=mode.ON)
-
-    elif seconds_button_was_held_for > 0 and state.mode == mode.ON:
-        actions.power_off(hardware, state)
-        return state.__copy__(initial_mode=mode.OFF)
-
-    elif acceleration_total(hardware) >= CLASH_THRESHOLD:
-        actions.clash(hardware, state)
-        return state.__copy__()
-
-    elif acceleration_total(hardware) >= SWING_THRESHOLD:
-        actions.swing(hardware, state)
-        return state.__copy__()
-
     elif seconds_button_was_held_for > 0 and state.mode == mode.COLOR_CHANGE:
         actions.next_color(hardware, state)
         return state.__copy__(initial_color=colors.next_color(state.color))
 
-    elif state.mode == mode.ON and not hardware.speaker.audio.playing:
-        sound.play_wav(state.sounds.idle(), hardware.speaker)
-        return state.__copy__()
     else:
         return state.__copy__()
 

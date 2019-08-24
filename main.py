@@ -7,7 +7,7 @@ import saber
 
 
 def main():
-    state = State(initial_mode=mode.OFF, initial_color=colors.BLUE)
+    state = State(initial_mode=mode.LIGHTSABER, initial_color=colors.BLUE)
     hardware = Hardware(132)
     saber.off(hardware.strip)
     hardware.powerButton.set_color(state.color)
@@ -16,7 +16,10 @@ def main():
 
 
 def run(state: State, hardware: Hardware) -> State:
-    return state_manager.get_action(state, hardware)
+    if state.mode == mode.LIGHTSABER:
+        return state_manager.evaluate_lightsaber(hardware, state)
+    else:
+        return state_manager.get_action(state, hardware)
 
 
 if __name__ == '__main__':

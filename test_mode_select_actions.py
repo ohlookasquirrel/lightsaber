@@ -67,11 +67,13 @@ def test_next_color_displays_to_next_color():
     state = State(initial_mode=mode.COLOR_CHANGE, initial_color=colors.ALL_COLORS[0])
 
     hardware = Hardware(30)
+    hardware.powerButton = MagicMock()
     actions.saber = MagicMock()
 
     actions.next_color(hardware, state)
 
     actions.saber.on(hardware.strip, color=colors.ALL_COLORS[1])
+    hardware.powerButton.set_color.assert_called_with(colors.ALL_COLORS[1])
 
 
 def test_execute_action_loops_back_to_first_color_on_next_color_action():

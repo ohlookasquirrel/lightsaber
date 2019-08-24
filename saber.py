@@ -109,11 +109,25 @@ def swell(strip, main_color, secondary_color):
     on(strip, color=main_color)
 
 
+def wheel(pos):
+    # Input a value 0 to 255 to get a color value.
+    # The colours are a transition r - g - b - back to r.
+    if pos < 0 or pos > 255:
+        return (0, 0, 0)
+    if pos < 85:
+        return (255 - pos * 3, pos * 3, 0)
+    if pos < 170:
+        pos -= 85
+        return (0, 255 - pos * 3, pos * 3)
+    pos -= 170
+    return (pos * 3, 0, 255 - pos * 3)
+
+
 def rainbow(strip, wait):
-    for first_pixel_hue in range(0, 5*65536, 256):
-        for pixel in range(0, NUM_PIXELS):
-            pixel_hue = first_pixel_hue + (pixel * 65536 / strip.numPixels())
-            strip[pixel] = strip.gamma32(strip.ColorHSV(pixel_hue))
+    for j in range(255):
+        for i in range(NUM_PIXELS):
+            rc_index = (i * 256 // NUM_PIXELS) + j
+            strip[i] = wheel(rc_index & 255)
         strip.show()
         time.sleep(wait)
 

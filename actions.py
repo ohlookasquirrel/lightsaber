@@ -1,3 +1,5 @@
+import time
+
 import colors
 import mode
 from Hardware import Hardware
@@ -9,7 +11,8 @@ import sound
 def power_on(hardware: Hardware, state: State):
     hardware.powerButton.power_on()
     saber.power(hardware.strip, hardware.speaker, state.sounds.on(), 1.0, False, state.idle_color)
-    sound.play_wav(state.sounds.idle(), hardware.speaker, override_current_sound=False)
+    sound.play_wav(state.sounds.idle(), hardware.speaker, override_current_sound=False, loop=True)
+    state.time_since_wav_was_looped = time.monotonic()
 
 
 def power_off(hardware: Hardware, state: State):
@@ -20,13 +23,13 @@ def power_off(hardware: Hardware, state: State):
 def clash(hardware: Hardware, state: State):
     sound.play_wav(state.sounds.clash(), hardware.speaker)
     saber.flash(hardware.strip, colors.WHITE, state.idle_color, num_of_flashes=1)
-    sound.play_wav(state.sounds.idle(), hardware.speaker, override_current_sound=False)
+    sound.play_wav(state.sounds.idle(), hardware.speaker, override_current_sound=False, loop=True)
 
 
 def swing(hardware: Hardware, state: State):
     sound.play_wav(state.sounds.swing(), hardware.speaker)
     saber.swell(hardware.strip, state.idle_color, state.color)
-    sound.play_wav(state.sounds.idle(), hardware.speaker, override_current_sound=False)
+    sound.play_wav(state.sounds.idle(), hardware.speaker, override_current_sound=False, loop=True)
 
 
 def mode_select(hardware: Hardware, state: State):
@@ -44,3 +47,9 @@ def activate_color_change_mode(hardware: Hardware):
 def next_color(hardware: Hardware, state: State):
     color = colors.next_color(state.color)
     saber.on(hardware.strip, color=color)
+    hardware.powerButton.set_color(color)
+
+
+def cycle_idle_loop(hardware, state):
+    hardware.speaker.audio.stop()
+    sound.play_wav(state.sounds.idle(), hardware.speaker, loop=True)
