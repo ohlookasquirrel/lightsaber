@@ -1,7 +1,10 @@
 import sys
 from unittest.mock import MagicMock, PropertyMock
 
+import pytest
+
 import colors
+from Hardware import Hardware
 from sound import Wowsaber
 
 sys.modules['neopixel'] = MagicMock()
@@ -12,9 +15,9 @@ sys.modules['pulseio'] = MagicMock()
 sys.modules['adafruit_lis3dh'] = MagicMock()
 sys.modules['audioio'] = MagicMock()
 import mode
-import action_manager
 from state import State
 import state_manager
+
 
 #  TODO Probably doing some serious overkill with the number of remocking
 #  TODO move this to main test
@@ -30,9 +33,9 @@ def test_get_action_returns_no_op_when_button_not_pressed_and_is_off():
     hardware.powerButton.pressed.return_value = False
     type(hardware.accelerometer).acceleration = PropertyMock(return_value=(1, 1, 1))
 
-    action_result = state_manager.get_action(state, hardware)
+    returned_state = state_manager.get_action(state, hardware)
 
-    assert action_result.name == action_manager.NONE
+    assert returned_state == state
 
 
 def test_get_action_returns_no_op_when_button_not_pressed_and_is_on():
@@ -42,9 +45,9 @@ def test_get_action_returns_no_op_when_button_not_pressed_and_is_on():
     hardware.powerButton.pressed.return_value = False
     type(hardware.accelerometer).acceleration = PropertyMock(return_value=(1, 1, 1))
 
-    action_result = state_manager.get_action(state, hardware)
+    returned_state = state_manager.get_action(state, hardware)
 
-    assert action_result.name == action_manager.NONE
+    assert returned_state == state
 
 
 def test_get_action_calls_power_on_action_when_button_released_and_is_off():

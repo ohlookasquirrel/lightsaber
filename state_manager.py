@@ -4,7 +4,6 @@ from Hardware import Hardware
 import time
 import mode
 from state import State
-from action import Action
 import sound
 
 
@@ -83,7 +82,7 @@ def get_action(state: State, hardware: Hardware):
         sound.play_wav(state.sounds.idle(), hardware.speaker)
         return state.__copy__()
     else:
-        return Action()
+        return state.__copy__()
 
 
 def acceleration_total(hardware):
