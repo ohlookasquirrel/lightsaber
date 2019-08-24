@@ -18,8 +18,12 @@ def main():
 def run(state: State, hardware: Hardware) -> State:
     if state.mode == mode.LIGHTSABER:
         return state_manager.evaluate_lightsaber(hardware, state)
+    elif state.mode == mode.MODE_SELECT:
+        return state_manager.evaluate_mode_select(hardware, state)
+    elif state.mode == mode.COLOR_CHANGE:
+        return state_manager.evaluate_color_change(hardware, state)
     else:
-        return state_manager.get_action(state, hardware)
+        return state.__copy__()
 
 
 if __name__ == '__main__':

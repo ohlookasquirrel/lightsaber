@@ -32,6 +32,7 @@ def evaluate_lightsaber(hardware: Hardware, state: State) -> State:
 
     seconds_button_was_held_for = seconds_button_was_pressed(hardware)
     if seconds_button_was_held_for >= 4:
+        actions.mode_select(hardware, state)
         new_state = new_state.__copy__(initial_mode=mode.MODE_SELECT)
 
     elif seconds_button_was_held_for > 0 and state.state == mode.OFF:
@@ -58,50 +59,50 @@ def evaluate_lightsaber(hardware: Hardware, state: State) -> State:
 
 def evaluate_mode_select(hardware: Hardware, state: State) -> State:
     new_state = state.__copy__()
-
-    return new_state
-
-
-#  TODO add return type when done with refactor
-def get_action(state: State, hardware: Hardware):
     seconds_button_was_held_for = seconds_button_was_pressed(hardware)
-
-    if seconds_button_was_held_for >= 4 and state.mode == mode.COLOR_CHANGE:
+    if seconds_button_was_held_for >= 4 and state.mode_selector.current().name == 'LIGHTSABER':
         actions.power_on(hardware, state)
-        return state.__copy__(initial_mode=mode.ON)
+        new_state.mode = mode.LIGHTSABER
+        new_state.state = mode.ON
+        new_state.sounds = sound.Lightsaber()
 
-    elif seconds_button_was_held_for >= 4 and state.mode == mode.MODE_SELECT and state.mode_selector.current().name == 'LIGHTSABER':
-        actions.power_on(hardware, state)
-        return state.__copy__(initial_mode=mode.ON)
-
-    elif seconds_button_was_held_for >= 4 and state.mode == mode.MODE_SELECT and state.mode_selector.current().name == 'COLOR_SELECT':
+    elif seconds_button_was_held_for >= 4 and state.mode_selector.current().name == 'COLOR_SELECT':
         actions.activate_color_change_mode(hardware)
-        return State(initial_mode=mode.COLOR_CHANGE, initial_color=colors.ALL_COLORS[0])
+        new_state = State(initial_mode=mode.COLOR_CHANGE, initial_color=colors.ALL_COLORS[0])
 
-    elif seconds_button_was_held_for >= 4 and state.mode == mode.MODE_SELECT and state.mode_selector.current().name == 'WOWSABER':
+    elif seconds_button_was_held_for >= 4 and state.mode_selector.current().name == 'WOWSABER':
         actions.power_on(hardware, state)
-        new_state = state.__copy__(initial_mode=mode.ON)
+        new_state.mode = mode.LIGHTSABER
+        new_state.state = mode.ON
         new_state.sounds = sound.Wowsaber()
-        return new_state
-
-    elif seconds_button_was_held_for >= 4:
-        actions.mode_select(hardware, state)
-        return state.__copy__(initial_mode=mode.MODE_SELECT)
 
     elif seconds_button_was_held_for > 0 and state.mode == mode.MODE_SELECT:
         new_state = state.__copy__()
         new_state.mode_selector.next()
         actions.mode_select(hardware, state)
-        return new_state
+    return new_state
 
-    elif seconds_button_was_held_for > 0 and state.mode == mode.COLOR_CHANGE:
+
+def evaluate_color_change(hardware: Hardware, state: State) -> State:
+    new_state = state.__copy__()
+    seconds_button_was_held_for = seconds_button_was_pressed(hardware)
+
+    if seconds_button_was_held_for >= 4:
+        actions.power_on(hardware, state)
+        new_state.mode = mode.LIGHTSABER
+        new_state.state = mode.ON
+
+    elif seconds_button_was_held_for > 0:
         actions.next_color(hardware, state)
-        return state.__copy__(initial_color=colors.next_color(state.color))
+        new_state = state.__copy__(initial_color=colors.next_color(state.color))
+    return new_state
 
-    else:
-        return state.__copy__()
+
+#  TODO add return type when done with refactor
+def get_action(state: State, hardware: Hardware):
+    return state.__copy__()
 
 
 def acceleration_total(hardware):
-    x, y, z = hardware.accelerometer.acceleration                            # Read accelerometer
+    x, y, z = hardware.accelerometer.acceleration
     return x * x + z * z
