@@ -10,8 +10,6 @@ import sound
 
 CLASH_THRESHOLD = 300
 SWING_THRESHOLD = 250
-# TODO remove prints
-
 
 def seconds_button_was_pressed(hardware):
     if not hardware.powerButton.pressed():
@@ -23,7 +21,6 @@ def seconds_button_was_pressed(hardware):
             break  # Break out for mode select
         pass
     x = time.monotonic() - time_button_was_pressed
-    print("Button was pressed for %s seconds" % x)
     return x
 
 

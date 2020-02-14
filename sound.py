@@ -2,7 +2,6 @@ import random
 
 
 def play_wav(file_name, speaker, loop=False, override_current_sound=True):
-    print("playing", file_name)
     try:
         wave_file = open('sounds/' + file_name + '.wav', 'rb')
         wave = speaker.audioio.WaveFile(wave_file)

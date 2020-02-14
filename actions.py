@@ -1,5 +1,4 @@
 import time
-
 import colors
 import mode
 from Hardware import Hardware
